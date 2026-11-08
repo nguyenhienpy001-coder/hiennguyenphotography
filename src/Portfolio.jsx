@@ -180,9 +180,36 @@ return (
       <section id="contact" className="portfolio-contact">
         <span className="eyebrow">LET'S CREATE SOMETHING BEAUTIFUL</span>
         <h2>Hãy cùng tạo nên<br />một câu chuyện của riêng bạn.</h2>
-        <a href="https://www.facebook.com/" target="_blank" rel="noreferrer">
-          LIÊN HỆ CHỤP ẢNH ↗
-        </a>
+        <div
+  style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "16px",
+    flexWrap: "wrap",
+    marginTop: "28px",
+  }}
+>
+  <a href="tel:0972708097">
+    GỌI ĐIỆN ↗
+  </a>
+
+  <a
+    href="https://zalo.me/0972708097"
+    target="_blank"
+    rel="noreferrer"
+  >
+    NHẮN ZALO ↗
+  </a>
+
+  <a
+    href="https://www.facebook.com/"
+    target="_blank"
+    rel="noreferrer"
+  >
+    FACEBOOK ↗
+  </a>
+</div>
       </section>
 
       <footer className="portfolio-footer">
