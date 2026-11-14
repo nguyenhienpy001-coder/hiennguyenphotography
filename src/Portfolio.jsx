@@ -47,6 +47,7 @@ const [imagesLoading, setImagesLoading] = useState(false);
     .from("album_images")
     .select("*")
     .eq("album_id", album.id)
+    .is("deleted_at", null)
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -277,7 +278,7 @@ return (
 
 {previewIndex !== null && albumImages[previewIndex] && (
   <div
-    onClick={() => setPreviewImage(null)}
+    onClick={() => setPreviewIndex(null)}
     style={{
       position: "fixed",
       inset: 0,

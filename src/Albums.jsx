@@ -22,6 +22,22 @@ export default function Albums() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [imageCounts, setImageCounts] = useState({});
+  const [countsLoading, setCountsLoading] = useState(true);
+  const [countsError, setCountsError] = useState("");
+
+  const filteredAlbums = albums.filter((album) => {
+    const matchesSearch = (album.title || "")
+      .toLocaleLowerCase("vi-VN")
+      .includes(searchTerm.trim().toLocaleLowerCase("vi-VN"));
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "published" && album.is_published) ||
+      (statusFilter === "draft" && !album.is_published);
+    return matchesSearch && matchesStatus;
+  });
 
   async function loadAlbums() {
     setLoading(true);
@@ -45,6 +61,52 @@ export default function Albums() {
   useEffect(() => {
     loadAlbums();
   }, []);
+
+  // Read-only image counts. Fetches only album IDs, not image files.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadImageCounts() {
+      setCountsLoading(true);
+      setCountsError("");
+      if (albums.length === 0) {
+        setImageCounts({});
+        setCountsLoading(false);
+        return;
+      }
+      const ids = albums.map((album) => album.id);
+      const counts = {};
+      for (const id of ids) counts[id] = 0;
+      // Query in pages so albums with more than 1,000 images count correctly.
+      const pageSize = 500;
+      let offset = 0;
+      while (true) {
+        const { data, error: queryError } = await supabase
+          .from("album_images")
+          .select("album_id")
+          .is("deleted_at", null)
+          .order("id")
+          .in("album_id", ids)
+          .range(offset, offset + pageSize - 1);
+        if (cancelled) return;
+        if (queryError) {
+          setCountsError("Không thể tải số lượng ảnh: " + queryError.message);
+          setCountsLoading(false);
+          return;
+        }
+        for (const row of data || []) {
+          counts[row.album_id] = (counts[row.album_id] || 0) + 1;
+        }
+        if (!data || data.length < pageSize) break;
+        offset += pageSize;
+      }
+      if (!cancelled) {
+        setImageCounts(counts);
+        setCountsLoading(false);
+      }
+    }
+    loadImageCounts();
+    return () => { cancelled = true; };
+  }, [albums]);
 async function handleUploadImage(e) {
   const file = e.target.files?.[0];
 
@@ -145,23 +207,8 @@ async function handleUploadImage(e) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  async function handleDelete(album) {
-    const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa album "${album.title}" không?`
-    );
-
-    if (!confirmed) return;
-
-    const { error } = await supabase
-      .from("albums")
-      .delete()
-      .eq("id", album.id);
-
-    if (error) {
-      setError(error.message);
-    } else {
-      await loadAlbums();
-    }
+  function handleDelete() {
+    setError("Tạm khóa xóa album để bảo vệ ảnh trong Thùng rác. Bạn có thể bỏ chọn Xuất bản album để ẩn album khỏi portfolio.");
   }
 
   const fieldStyle = {
@@ -178,7 +225,7 @@ async function handleUploadImage(e) {
   return (
     <AlbumImages
       album={selectedAlbum}
-      onBack={() => setSelectedAlbum(null)}
+      onBack={() => { setSelectedAlbum(null); loadAlbums(); }}
     />
   );
 }
@@ -325,16 +372,46 @@ async function handleUploadImage(e) {
 
       <section className="panel" style={{ padding: "24px" }}>
         <h2 style={{ marginTop: 0 }}>
-          Danh sách album ({albums.length})
+          Danh sách album ({filteredAlbums.length}/{albums.length})
         </h2>
 
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "18px" }}>
+          <label style={{ flex: "2 1 240px" }}>
+            <span style={{ display: "block", marginBottom: "6px" }}>Tìm theo tên album</span>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Nhập tên album..."
+              aria-label="Tìm theo tên album"
+              style={{ ...fieldStyle, marginTop: 0 }}
+            />
+          </label>
+          <label style={{ flex: "1 1 170px" }}>
+            <span style={{ display: "block", marginBottom: "6px" }}>Trạng thái</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Lọc trạng thái album"
+              style={{ ...fieldStyle, marginTop: 0 }}
+            >
+              <option value="all">Tất cả</option>
+              <option value="published">Đã xuất bản</option>
+              <option value="draft">Bản nháp</option>
+            </select>
+          </label>
+        </div>
+
+        {countsError && <p role="alert" style={{ color: "#b45309" }}>{countsError}</p>}
         {loading ? (
           <p>Đang tải album...</p>
         ) : albums.length === 0 ? (
           <p>Chưa có album nào. Hãy thêm album đầu tiên.</p>
+        ) : filteredAlbums.length === 0 ? (
+          <p>Không tìm thấy album phù hợp. Hãy thử từ khóa hoặc trạng thái khác.</p>
         ) : (
           <div style={{ display: "grid", gap: "15px" }}>
-            {albums.map((album) => (
+            {filteredAlbums.map((album) => (
               <div
                 key={album.id}
                 style={{
@@ -382,6 +459,13 @@ async function handleUploadImage(e) {
                     {album.is_published ? "Đã xuất bản" : "Bản nháp"}
                     {album.is_featured ? " · Nổi bật" : ""}
                   </small>
+                  <div style={{ marginTop: "8px", fontSize: "13px", color: "#666" }}>
+                    {countsLoading
+                      ? "Đang đếm ảnh..."
+                      : countsError
+                        ? "Chưa tải được số lượng ảnh"
+                        : `${imageCounts[album.id] ?? 0} ảnh`}
+                  </div>
                 </div>
 
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -394,7 +478,7 @@ async function handleUploadImage(e) {
   </button>
 
   <button onClick={() => handleDelete(album)}>
-    Xóa
+    Xóa album (tạm khóa)
   </button>
 </div>
               </div>
