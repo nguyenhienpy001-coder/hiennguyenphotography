@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import { supabase } from "./lib/supabase";
 import PublicServices from "./PublicServices";
+import PortfolioLightbox from "./PortfolioLightbox";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { groupPublishedAlbums, categoryName, categoryHref, categoriesHref, allAlbumsHref } from "./lib/portfolioCategories";
 import "./portfolio-categories.css";
@@ -21,7 +22,6 @@ const [selectedAlbum, setSelectedAlbum] = useState(null);
 const [albums, setAlbums] = useState([]);
 const [albumImages, setAlbumImages] = useState([]);
 const [previewIndex, setPreviewIndex] = useState(null);
-const touchStartX = useRef(null);
 const [loading, setLoading] = useState(true);
 const [imagesLoading, setImagesLoading] = useState(false);
 const [loadError, setLoadError] = useState("");
@@ -126,49 +126,16 @@ async function copyCategoryLink() {
     } finally { if (request === imageRequest.current) setImagesLoading(false); }
   }
 
-function handlePrevImage() {
-  setPreviewIndex((current) =>
-    current === 0 ? albumImages.length - 1 : current - 1
-  );
-}
-
-
-function handleNextImage() {
-  setPreviewIndex((current) =>
-    current === albumImages.length - 1 ? 0 : current + 1
-  );
-}
-
-// Điều khiển Lightbox bằng bàn phím
+// The lightbox handles its own keyboard controls; Escape here only closes the album.
 useEffect(() => {
-  function handleKeyDown(e) {
-    if (!selectedAlbum) return;
-    if (e.key === "Escape") {
-      if (previewIndex !== null) setPreviewIndex(null);
-      else closeAlbum();
-      return;
-    }
-    if (previewIndex === null) return;
-
-    if (e.key === "ArrowLeft") {
-      handlePrevImage();
-    }
-
-    if (e.key === "ArrowRight") {
-      handleNextImage();
-    }
-
-    if (e.key === "Escape") {
-      setPreviewIndex(null);
+  function handleKeyDown(event) {
+    if (event.key === "Escape" && selectedAlbum && previewIndex === null) {
+      event.preventDefault(); closeAlbum();
     }
   }
-
   window.addEventListener("keydown", handleKeyDown);
-
-  return () => {
-    window.removeEventListener("keydown", handleKeyDown);
-  };
-}, [previewIndex, albumImages.length, selectedAlbum]);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [selectedAlbum, previewIndex]);
 
 return (
   <div className="portfolio-site">
@@ -301,7 +268,8 @@ return (
       <a href="/admin" className="admin-link">Quản trị</a>
 
 {selectedAlbum && (
-  <div className="album-modal" onClick={closeAlbum}>
+  <div className="album-modal" onClick={closeAlbum}
+    aria-hidden={previewIndex !== null ? true : undefined} inert={previewIndex !== null ? "" : undefined}>
     <button
       aria-label="Đóng album"
       className="modal-close"
@@ -349,6 +317,13 @@ return (
   src={image.image_url}
   alt={selectedAlbum.title}
   loading="lazy"
+  role="button" tabIndex={0}
+  aria-label={`Xem ảnh ${albumImages.findIndex(item => item.id === image.id) + 1} trong album ${selectedAlbum.title}`}
+  onKeyDown={event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault(); setPreviewIndex(albumImages.findIndex(item => item.id === image.id));
+    }
+  }}
   onClick={() =>
   setPreviewIndex(
     albumImages.findIndex((item) => item.id === image.id)
@@ -370,130 +345,10 @@ return (
 )}
 
 {previewIndex !== null && albumImages[previewIndex] && (
-  <div
-    onClick={() => setPreviewIndex(null)}
-    style={{
-      position: "fixed",
-      inset: 0,
-      zIndex: 9999,
-      background: "rgba(0,0,0,0.94)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "30px",
-      cursor: "zoom-out",
-
-}}
-  >
-    {/* Nút ảnh trước */}
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        handlePrevImage();
-      }}
-      style={{
-        position: "absolute",
-        left: "25px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        background: "rgba(255,255,255,0.15)",
-        border: "none",
-        color: "#fff",
-        fontSize: "36px",
-        padding: "10px 18px",
-        cursor: "pointer",
-        borderRadius: "8px",
-      }}
-    >
-      ‹
-    </button>
-
-    {/* Nút ảnh tiếp theo */}
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        handleNextImage();
-      }}
-      style={{
-        position: "absolute",
-        right: "25px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        background: "rgba(255,255,255,0.15)",
-        border: "none",
-        color: "#fff",
-        fontSize: "36px",
-        padding: "10px 18px",
-        cursor: "pointer",
-        borderRadius: "8px",
-      }}
-    >
-      ›
-    </button>
-
-    {/* Nút đóng */}
-    <button
-      onClick={() => setPreviewIndex(null)}
-      style={{
-        position: "absolute",
-        top: "20px",
-        right: "25px",
-        background: "transparent",
-        border: "none",
-        color: "#fff",
-        fontSize: "36px",
-        cursor: "pointer",
-      }}
-    >
-      ×
-    </button>
-<div
-  style={{
-    position: "absolute",
-    bottom: "25px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    color: "#fff",
-    fontSize: "15px",
-    background: "rgba(0,0,0,0.5)",
-    padding: "8px 16px",
-    borderRadius: "20px",
-  }}
->
-  {previewIndex + 1} / {albumImages.length}
-</div>
-    {/* Ảnh đang xem */}
-    <img
-      src={albumImages[previewIndex].image_url}
-      alt="Ảnh xem trước"
-      onClick={(e) => e.stopPropagation()}
-      onTouchStart={(e) => {
-  touchStartX.current = e.touches[0].clientX;
-}}
-
-onTouchEnd={(e) => {
-  if (touchStartX.current === null) return;
-
-  const touchEndX = e.changedTouches[0].clientX;
-  const distance = touchEndX - touchStartX.current;
-
-  if (distance < -50) {
-    handleNextImage();
-  } else if (distance > 50) {
-    handlePrevImage();
-  }
-
-  touchStartX.current = null;
-}}
-      style={{
-        maxWidth: "95%",
-        maxHeight: "90vh",
-        objectFit: "contain",
-        borderRadius: "4px",
-      }}
-    />
-  </div>
+  <PortfolioLightbox images={albumImages} index={previewIndex} onIndexChange={setPreviewIndex}
+    onClose={() => setPreviewIndex(null)} albumTitle={selectedAlbum?.title || ""} />
 )}
+
     </div>
   );
 }

@@ -5,6 +5,7 @@ import Auth from "./Auth";
 import Albums from "./Albums";
 import Portfolio from "./Portfolio";
 import Services from "./Services";
+import { siteBrand } from "./lib/siteBrand";
 import { supabase } from "./lib/supabase";
 
 const ui = {
@@ -82,6 +83,7 @@ function AdminApp() {
 }
 
 export default function App() {
+  useEffect(() => { document.title = siteBrand.name; }, []);
   return (
     <Routes>
       <Route path="/" element={<Portfolio />} />

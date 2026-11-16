@@ -1,0 +1,16 @@
+.portfolio-site .hn-lightbox{position:fixed;inset:0;z-index:10000;box-sizing:border-box;height:100vh;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:0;background:#080808;color:#f5f5f5;padding:env(safe-area-inset-top,0px) max(12px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(12px,env(safe-area-inset-left,0px));outline:none;overscroll-behavior:contain;font-family:Arial,sans-serif}
+.hn-lightbox-header{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:56px;padding:4px 8px;box-sizing:border-box}
+.hn-lightbox-title{font-size:13px;line-height:1.5;color:#c4c4c4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.portfolio-site .hn-lightbox button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:#202020;color:#fff;font-family:Arial,sans-serif;font-weight:400;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.hn-lightbox button>span{pointer-events:none}.portfolio-site .hn-lightbox .hn-lightbox-close{font-size:30px;border-color:transparent;background:transparent}
+.hn-lightbox-stage{min-width:0;min-height:0;position:relative;display:flex;align-items:center;justify-content:center;padding:0 56px;touch-action:pan-y pinch-zoom;box-sizing:border-box;cursor:zoom-out}
+.portfolio-site .hn-lightbox-stage>img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain;border-radius:0;cursor:default;user-select:none;-webkit-user-select:none}
+.hn-lightbox-footer{display:flex;align-items:center;justify-content:center;min-height:54px;padding:5px 8px;box-sizing:border-box}
+.hn-lightbox-counter{font-size:13px;line-height:1.5;color:#ddd;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+.portfolio-site .hn-lightbox-prev,.portfolio-site .hn-lightbox-next{position:absolute;top:50%;transform:translateY(-50%);font-size:32px}
+.hn-lightbox-prev{left:max(12px,env(safe-area-inset-left,0px))}.hn-lightbox-next{right:max(12px,env(safe-area-inset-right,0px))}
+.portfolio-site .hn-lightbox button:disabled{opacity:.3;cursor:default}.portfolio-site .hn-lightbox button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.hn-lightbox-message{position:absolute;text-align:center;font-size:13px;line-height:2;color:#ddd;padding:10px;pointer-events:none}
+.portfolio-site .hn-lightbox-message button{pointer-events:auto;width:auto;border-radius:5px;font-size:13px;padding:0 16px;margin-top:10px}
+@media(max-width:700px){.hn-lightbox-header{min-height:52px;padding:2px 0}.hn-lightbox-title{font-size:12px}.hn-lightbox-stage{padding:0}.hn-lightbox-footer{justify-content:space-between;min-height:60px;padding:6px 0;gap:12px}.portfolio-site .hn-lightbox-prev,.portfolio-site .hn-lightbox-next{position:static;transform:none;width:44px;height:44px;font-size:30px}.hn-lightbox-counter{font-size:13px}}
+@media(max-height:450px) and (orientation:landscape){.hn-lightbox-header{min-height:44px;padding:0}.hn-lightbox-footer{min-height:44px;padding:0}.hn-lightbox-title{font-size:11px}}
