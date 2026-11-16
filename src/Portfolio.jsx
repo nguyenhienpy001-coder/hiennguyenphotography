@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "./lib/supabase";
+import PublicServices from "./PublicServices";
 
 
 
@@ -109,6 +110,7 @@ return (
         <nav>
           <a href="#portfolio">Portfolio</a>
           <a href="#about">Giới thiệu</a>
+          <a href="#services">Bảng giá</a>
           <a href="#contact">Liên hệ</a>
         </nav>
       </header>
@@ -177,6 +179,8 @@ return (
           vẻ đẹp và cảm xúc được lưu giữ qua từng khung hình.
         </p>
       </section>
+
+      <PublicServices />
 
       <section id="contact" className="portfolio-contact">
         <span className="eyebrow">LET'S CREATE SOMETHING BEAUTIFUL</span>

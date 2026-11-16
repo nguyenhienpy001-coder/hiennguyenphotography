@@ -4,6 +4,7 @@ import { Images, Tags, ExternalLink, LogOut } from "lucide-react";
 import Auth from "./Auth";
 import Albums from "./Albums";
 import Portfolio from "./Portfolio";
+import Services from "./Services";
 import { supabase } from "./lib/supabase";
 
 const ui = {
@@ -73,12 +74,8 @@ function AdminApp() {
             </button>
           ))}
         </nav>
-        {active === "albums" ? <Albums /> : (
-          <section style={{ background: "#fff", padding: 24, border: "1px solid #e8e4dd", borderRadius: 10 }}>
-            <h2 style={{ marginTop: 0 }}>Services & Pricing</h2>
-            <p>Chúng ta sẽ xây dựng chức năng quản lý dịch vụ và bảng giá ở bước tiếp theo.</p>
-          </section>
-        )}
+        <div hidden={active !== "albums"}><Albums /></div>
+        <div hidden={active !== "services"}><Services /></div>
       </main>
     </div>
   );
